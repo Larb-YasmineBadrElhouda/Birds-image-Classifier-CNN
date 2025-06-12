@@ -1,0 +1,102 @@
+"""from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+import tensorflow as tf
+from utils import preprocess_image
+
+app = FastAPI()
+
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Ou spécifie ["http://localhost"] si tu veux restreindre
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# Charger modèle Keras
+model = tf.keras.models.load_model("Image_classify_Birds_Model.keras")
+
+# Liste des classes (tu peux les récupérer dynamiquement depuis training dataset sinon)
+class_names = ['ABBOTTS BABBLER',
+ 'ABBOTTS BOOBY',
+ 'ABYSSINIAN GROUND HORNBILL',
+ 'AFRICAN CROWNED CRANE',
+ 'AFRICAN EMERALD CUCKOO',
+ 'AFRICAN FIREFINCH',
+ 'AFRICAN OYSTER CATCHER',
+ 'AFRICAN PIED HORNBILL',
+ 'AFRICAN PYGMY GOOSE',
+ 'ALBATROSS',
+ 'ALBERTS TOWHEE',
+ 'ALEXANDRINE PARAKEET',
+ 
+ 'ALTAMIRA YELLOWTHROAT',
+ 'AMERICAN AVOCET',
+ 'AMERICAN BITTERN',
+ 'AMERICAN COOT',
+ 'AMERICAN FLAMINGO',
+ 'AMERICAN GOLDFINCH',
+ 'AMERICAN KESTREL'] # Remplir avec les vraies classes
+
+@app.post("/predict")
+async def predict(file: UploadFile = File(...)):
+    image_data = await file.read()
+    input_tensor = preprocess_image(image_data)
+    predictions = model.predict(input_tensor)
+    predicted_index = predictions.argmax(axis=1)[0]
+    predicted_class = class_names[predicted_index]
+    return {
+        "predicted_class": predicted_class,
+        "class_index": int(predicted_index),
+        "raw_prediction": predictions.tolist()
+    }"""
+"""from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+import tensorflow as tf
+from utils import preprocess_image
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Charger modèle
+model = tf.keras.models.load_model("Image_classify_Birds_Model.keras")
+
+# Liste exacte des classes (récupérée depuis le notebook `data_cat`)
+class_names = [
+    'ABBOTTS BABBLER', 'ABBOTTS BOOBY', 'ABYSSINIAN GROUND HORNBILL',
+    'AFRICAN CROWNED CRANE', 'AFRICAN EMERALD CUCKOO', 'AFRICAN FIREFINCH',
+    'AFRICAN OYSTER CATCHER', 'AFRICAN PIED HORNBILL', 'AFRICAN PYGMY GOOSE',
+    'ALBATROSS', 'ALBERTS TOWHEE', 'ALEXANDRINE PARAKEET','ALPINE CHOUGH',
+    'ALTAMIRA YELLOWTHROAT', 'AMERICAN AVOCET', 'AMERICAN BITTERN',
+    'AMERICAN COOT', 'AMERICAN FLAMINGO', 'AMERICAN GOLDFINCH',
+    'AMERICAN KESTREL'
+]
+
+@app.post("/predict")
+async def predict(file: UploadFile = File(...)):
+    image_data = await file.read()
+    input_tensor = preprocess_image(image_data)
+
+    logits = model.predict(input_tensor)  # Ce sont des logits
+    probabilities = tf.nn.softmax(logits[0])  # Appliquer softmax
+
+    predicted_index = tf.argmax(probabilities).numpy()
+    predicted_class = class_names[predicted_index]
+    confidence = float(probabilities[predicted_index])
+
+    return {
+        "predicted_class": predicted_class,
+        "class_index": int(predicted_index),
+        "confidence": round(confidence * 100, 2),
+        "raw_prediction": probabilities.numpy().tolist()
+    }"""

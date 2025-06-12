@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Prédiction d'oiseau</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url("best.jpg") no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .header {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 20px 25px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      margin-top: 30px;
+      max-width: 600px;
+      text-align: center;
+      color: #fff;
+      text-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header img {
+      width: 40px;
+      height: auto;
+    }
+
+    .header-text {
+      flex: 1;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      width: 400px;
+      max-width: 90%;
+      text-align: center;
+      margin-top: 70px; /* encore plus bas */
+    }
+
+    input[type="file"]::file-selector-button {
+      background-color: #ffffff55;
+      color: #000;
+      border: 1px solid #ccc;
+      padding: 8px 15px;
+      border-radius: 8px;
+      margin-right: 10px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      background-color: #ffffff88;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin-top: 15px;
+      border: none;
+      background-color: #fff;
+      color: #000;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    button:hover {
+      background-color: #eeeeee;
+      transform: scale(1.03);
+    }
+
+    p {
+      font-weight: bold;
+      margin-top: 20px;
+      color: #fff;
+      text-shadow: 0 0 5px #000;
+    }
+
+    #preview {
+      margin-top: 20px;
+      max-width: 100%;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    audio {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="mini.jpg" alt="icon gauche">
+    <div class="header-text">
+      
+      <h2>Bienvenue, explorateur ou exploratrice du ciel !</h2>
+      <p>Une plume, une photo… et hop, découvrons ensemble quel petit oiseau s’est glissé là.</p>
+      <p><strong>Allons-y !</strong> Prépare ton sac, petit explorateur ! Il suffit d’une image et notre super détective va deviner quel oiseau tu as vu !</p>
+    </div>
+    <img src="mini.jpg" alt="icon droite">
+  </div>
+
+  <div class="container">
+    <input type="file" id="imageInput" accept="image/*" onchange="previewImage()">
+    <br>
+    <button onclick="sendImage()">Identifie-moi 🐤</button>
+
+    <p id="result"></p>
+    <img id="preview" src="#" alt="Aperçu" style="display: none;">
+    <audio id="player" controls autoplay hidden></audio>
+  </div>
+
+  <script>
+    function previewImage() {
+      const input = document.getElementById("imageInput");
+      const preview = document.getElementById("preview");
+      const file = input.files[0];
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          preview.src = e.target.result;
+          preview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.style.display = "none";
+      }
+    }
+
+    async function sendImage() {
+      const input = document.getElementById("imageInput");
+      const file = input.files[0];
+      if (!file) {
+        alert("Choisissez une image !");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/predict", {
+          method: "POST",
+          body: formData
+        });
+
+        const result = await response.json();
+
+        document.getElementById("result").innerText =
+          `Classe prédite : ${result.predicted_class} (confiance : ${result.confidence}%)`;
+
+        const audio = document.getElementById("player");
+        audio.src = "http://127.0.0.1:8000" + result.audio_url;
+        audio.hidden = false;
+        audio.play();
+
+      } catch (error) {
+        console.error(error);
+        document.getElementById("result").innerText =
+          "Erreur lors de la prédiction.";
+      }
+    }
+  </script>
+</body>
+</html>
